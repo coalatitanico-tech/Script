@@ -1,0 +1,464 @@
+--[[
+    Nome: gumball scripts_lag (modificado)
+    Tema: Neon Roxo
+    Funcionalidades:
+    - Toggle "lag": ativa/desativa:
+        * Gráficos no máximo (qualidade 10)
+        * Loop de reset do próprio personagem (se "no reset" estiver desativado)
+    - Toggle "no reset": impede o reset automático enquanto estiver ativo
+    - Botão "join discord": copia link
+    - Janela arrastável e minimizável
+--]]
+
+-- =====================================================
+--                     CONFIGURAÇÕES
+-- =====================================================
+local LINK_DISCORD = "https://discord.gg/kdkukefc87"
+local COR_NEON = Color3.fromRGB(155, 48, 255)      -- Roxo neon
+local COR_FUNDO = Color3.fromRGB(25, 25, 35)
+local COR_TEXTO = Color3.fromRGB(255, 255, 255)
+
+-- =====================================================
+--               CRIAÇÃO DA INTERFACE
+-- =====================================================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "gumball_scripts_lag"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 280, 0, 380)  -- Altura aumentada para o novo toggle
+mainFrame.Position = UDim2.new(0.5, -140, 0.5, -190)
+mainFrame.BackgroundColor3 = COR_FUNDO
+mainFrame.BackgroundTransparency = 0.15
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = screenGui
+
+-- Sombra / Brilho neon
+local neonBorder = Instance.new("UICorner")
+neonBorder.CornerRadius = UDim.new(0, 12)
+neonBorder.Parent = mainFrame
+
+local shadow = Instance.new("UIStroke")
+shadow.Color = COR_NEON
+shadow.Thickness = 2
+shadow.Transparency = 0.3
+shadow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+shadow.Parent = mainFrame
+
+-- Título da janela
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 35)
+titleBar.BackgroundColor3 = COR_NEON
+titleBar.BackgroundTransparency = 0.25
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 12)
+titleCorner.Parent = titleBar
+
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, -50, 1, 0)
+titleText.Position = UDim2.new(0, 15, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "gumball scripts_lag"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextSize = 16
+titleText.Font = Enum.Font.GothamBold
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.TextYAlignment = Enum.TextYAlignment.Center
+titleText.Parent = titleBar
+
+-- Botão minimizar
+local minimizeBtn = Instance.new("TextButton")
+minimizeBtn.Name = "MinimizeBtn"
+minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+minimizeBtn.Position = UDim2.new(1, -35, 0, 2)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+minimizeBtn.Text = "−"
+minimizeBtn.TextColor3 = COR_TEXTO
+minimizeBtn.TextSize = 24
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.BorderSizePixel = 0
+minimizeBtn.Parent = titleBar
+
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 8)
+minCorner.Parent = minimizeBtn
+
+-- Frame do conteúdo
+local contentFrame = Instance.new("Frame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1, 0, 1, -35)
+contentFrame.Position = UDim2.new(0, 0, 0, 35)
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = mainFrame
+
+local uiList = Instance.new("UIListLayout")
+uiList.Padding = UDim.new(0, 15)
+uiList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+uiList.VerticalAlignment = Enum.VerticalAlignment.Top
+uiList.SortOrder = Enum.SortOrder.LayoutOrder
+uiList.Parent = contentFrame
+
+local paddingTop = Instance.new("UIPadding")
+paddingTop.PaddingTop = UDim.new(0, 20)
+paddingTop.Parent = contentFrame
+
+-- =====================================================
+--               TOGGLE "LAG" (gráficos + reset)
+-- =====================================================
+local lagFrame = Instance.new("Frame")
+lagFrame.Size = UDim2.new(0, 240, 0, 50)
+lagFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+lagFrame.BackgroundTransparency = 0.3
+lagFrame.BorderSizePixel = 0
+lagFrame.Parent = contentFrame
+
+local lagCorner = Instance.new("UICorner")
+lagCorner.CornerRadius = UDim.new(0, 10)
+lagCorner.Parent = lagFrame
+
+local lagLabel = Instance.new("TextLabel")
+lagLabel.Size = UDim2.new(0, 80, 1, 0)
+lagLabel.Position = UDim2.new(0, 15, 0, 0)
+lagLabel.BackgroundTransparency = 1
+lagLabel.Text = "MODO LAG"
+lagLabel.TextColor3 = COR_TEXTO
+lagLabel.TextSize = 14
+lagLabel.Font = Enum.Font.GothamSemibold
+lagLabel.TextXAlignment = Enum.TextXAlignment.Left
+lagLabel.TextYAlignment = Enum.TextYAlignment.Center
+lagLabel.Parent = lagFrame
+
+local lagToggle = Instance.new("TextButton")
+lagToggle.Size = UDim2.new(0, 100, 0, 36)
+lagToggle.Position = UDim2.new(1, -115, 0, 7)
+lagToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+lagToggle.Text = "DESATIVADO"
+lagToggle.TextColor3 = COR_TEXTO
+lagToggle.TextSize = 13
+lagToggle.Font = Enum.Font.GothamBold
+lagToggle.BorderSizePixel = 0
+lagToggle.Parent = lagFrame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 8)
+toggleCorner.Parent = lagToggle
+
+-- =====================================================
+--               TOGGLE "NO RESET"
+-- =====================================================
+local noResetFrame = Instance.new("Frame")
+noResetFrame.Size = UDim2.new(0, 240, 0, 50)
+noResetFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+noResetFrame.BackgroundTransparency = 0.3
+noResetFrame.BorderSizePixel = 0
+noResetFrame.Parent = contentFrame
+
+local noResetCorner = Instance.new("UICorner")
+noResetCorner.CornerRadius = UDim.new(0, 10)
+noResetCorner.Parent = noResetFrame
+
+local noResetLabel = Instance.new("TextLabel")
+noResetLabel.Size = UDim2.new(0, 100, 1, 0)
+noResetLabel.Position = UDim2.new(0, 15, 0, 0)
+noResetLabel.BackgroundTransparency = 1
+noResetLabel.Text = "NO RESET"
+noResetLabel.TextColor3 = COR_TEXTO
+noResetLabel.TextSize = 13
+noResetLabel.Font = Enum.Font.GothamSemibold
+noResetLabel.TextXAlignment = Enum.TextXAlignment.Left
+noResetLabel.TextYAlignment = Enum.TextYAlignment.Center
+noResetLabel.Parent = noResetFrame
+
+local noResetToggle = Instance.new("TextButton")
+noResetToggle.Size = UDim2.new(0, 100, 0, 36)
+noResetToggle.Position = UDim2.new(1, -115, 0, 7)
+noResetToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+noResetToggle.Text = "DESATIVADO"
+noResetToggle.TextColor3 = COR_TEXTO
+noResetToggle.TextSize = 13
+noResetToggle.Font = Enum.Font.GothamBold
+noResetToggle.BorderSizePixel = 0
+noResetToggle.Parent = noResetFrame
+
+local noResetToggleCorner = Instance.new("UICorner")
+noResetToggleCorner.CornerRadius = UDim.new(0, 8)
+noResetToggleCorner.Parent = noResetToggle
+
+-- =====================================================
+--               BOTÃO "JOIN DISCORD"
+-- =====================================================
+local discordFrame = Instance.new("Frame")
+discordFrame.Size = UDim2.new(0, 240, 0, 50)
+discordFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+discordFrame.BackgroundTransparency = 0.3
+discordFrame.BorderSizePixel = 0
+discordFrame.Parent = contentFrame
+
+local discordCorner = Instance.new("UICorner")
+discordCorner.CornerRadius = UDim.new(0, 10)
+discordCorner.Parent = discordFrame
+
+local discordLabel = Instance.new("TextLabel")
+discordLabel.Size = UDim2.new(0, 130, 1, 0)
+discordLabel.Position = UDim2.new(0, 15, 0, 0)
+discordLabel.BackgroundTransparency = 1
+discordLabel.Text = "ENTRE NO DISCORD"
+discordLabel.TextColor3 = COR_TEXTO
+discordLabel.TextSize = 13
+discordLabel.Font = Enum.Font.GothamSemibold
+discordLabel.TextXAlignment = Enum.TextXAlignment.Left
+discordLabel.TextYAlignment = Enum.TextYAlignment.Center
+discordLabel.Parent = discordFrame
+
+local discordBtn = Instance.new("TextButton")
+discordBtn.Size = UDim2.new(0, 100, 0, 36)
+discordBtn.Position = UDim2.new(1, -115, 0, 7)
+discordBtn.BackgroundColor3 = Color3.fromRGB(114, 137, 218)
+discordBtn.Text = "COPIAR LINK"
+discordBtn.TextColor3 = COR_TEXTO
+discordBtn.TextSize = 13
+discordBtn.Font = Enum.Font.GothamBold
+discordBtn.BorderSizePixel = 0
+discordBtn.Parent = discordFrame
+
+local discordCornerBtn = Instance.new("UICorner")
+discordCornerBtn.CornerRadius = UDim.new(0, 8)
+discordCornerBtn.Parent = discordBtn
+
+-- =====================================================
+--             LÓGICA DOS TOGGLES (local)
+-- =====================================================
+local lagAtivo = false
+local noResetAtivo = false
+local resetLoop = nil
+local graficosAnterior = nil
+
+-- Função para definir qualidade gráfica (0 = mínimo, 10 = máximo)
+local function setGraphicsLevel(level)
+    local success, err = pcall(function()
+        local settings = game:GetService("UserSettings")
+        local gameSettings = settings:GetService("UserGameSettings")
+        gameSettings.GraphicsQualityLevel = level
+    end)
+    if not success then
+        warn("Não foi possível alterar os gráficos: " .. tostring(err))
+    end
+end
+
+-- Função que faz o personagem resetar (morrer e renascer)
+local function resetPersonagem()
+    local player = game.Players.LocalPlayer
+    if player and player.Character then
+        -- Método suave: quebrar todas as juntas (mata o personagem)
+        player.Character:BreakJoints()
+    elseif player and not player.Character then
+        -- Se já estiver morto, tenta carregar novamente (força respawn)
+        player:LoadCharacter()
+    end
+end
+
+-- Loop de reset contínuo
+local function iniciarLoopReset()
+    if resetLoop then return end
+    resetLoop = task.spawn(function()
+        while lagAtivo and not noResetAtivo do
+            pcall(resetPersonagem)
+            task.wait(0.3) -- espera 0.3 segundos entre cada reset
+        end
+        resetLoop = nil
+    end)
+end
+
+local function pararLoopReset()
+    if resetLoop then
+        task.cancel(resetLoop)
+        resetLoop = nil
+    end
+end
+
+-- Ativar modo "lag" (gráficos no máximo + possível reset)
+local function ativarLag()
+    if lagAtivo then return end
+    lagAtivo = true
+    lagToggle.Text = "ATIVADO"
+    lagToggle.BackgroundColor3 = Color3.fromRGB(200, 50, 100)
+    
+    -- Salva configuração gráfica atual (opcional)
+    pcall(function()
+        local settings = game:GetService("UserSettings")
+        local gameSettings = settings:GetService("UserGameSettings")
+        graficosAnterior = gameSettings.GraphicsQualityLevel
+    end)
+    -- Força gráficos no máximo
+    setGraphicsLevel(10)
+    
+    -- Se o noReset estiver desativado, inicia o loop de reset
+    if not noResetAtivo then
+        iniciarLoopReset()
+    end
+end
+
+-- Desativar modo "lag" (restaura gráficos e para reset)
+local function desativarLag()
+    if not lagAtivo then return end
+    lagAtivo = false
+    lagToggle.Text = "DESATIVADO"
+    lagToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+    
+    -- Restaura gráficos para o valor anterior (ou 5 como fallback)
+    if graficosAnterior then
+        setGraphicsLevel(graficosAnterior)
+    else
+        setGraphicsLevel(5)
+    end
+    
+    -- Para o loop de reset
+    pararLoopReset()
+end
+
+-- Alternar "no reset"
+local function alternarNoReset()
+    noResetAtivo = not noResetAtivo
+    if noResetAtivo then
+        noResetToggle.Text = "ATIVADO"
+        noResetToggle.BackgroundColor3 = Color3.fromRGB(70, 130, 200)
+        -- Se o lag estiver ativo, interrompe o reset imediatamente
+        if lagAtivo then
+            pararLoopReset()
+        end
+    else
+        noResetToggle.Text = "DESATIVADO"
+        noResetToggle.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+        -- Se o lag estiver ativo, retoma o reset
+        if lagAtivo then
+            iniciarLoopReset()
+        end
+    end
+end
+
+-- Conectar eventos dos botões
+lagToggle.MouseButton1Click:Connect(function()
+    if lagAtivo then
+        desativarLag()
+    else
+        ativarLag()
+    end
+end)
+
+noResetToggle.MouseButton1Click:Connect(alternarNoReset)
+
+-- =====================================================
+--                 FUNÇÃO DE DRAG (ARRASTAR)
+-- =====================================================
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- =====================================================
+--                 FUNÇÃO MINIMIZAR
+-- =====================================================
+local minimizado = false
+local alturaOriginal = 380  -- nova altura
+
+minimizeBtn.MouseButton1Click:Connect(function()
+    if minimizado then
+        mainFrame.Size = UDim2.new(0, 280, 0, alturaOriginal)
+        contentFrame.Visible = true
+        minimizado = false
+        minimizeBtn.Text = "−"
+    else
+        alturaOriginal = mainFrame.Size.Y.Offset
+        mainFrame.Size = UDim2.new(0, 280, 0, 35)
+        contentFrame.Visible = false
+        minimizado = true
+        minimizeBtn.Text = "+"
+    end
+end)
+
+-- =====================================================
+--                 BOTÃO DISCORD
+-- =====================================================
+discordBtn.MouseButton1Click:Connect(function()
+    local clipboardSuccess = false
+    if setclipboard then
+        setclipboard(LINK_DISCORD)
+        clipboardSuccess = true
+    elseif toclipboard then
+        toclipboard(LINK_DISCORD)
+        clipboardSuccess = true
+    elseif syn and syn.set_clipboard then
+        syn.set_clipboard(LINK_DISCORD)
+        clipboardSuccess = true
+    elseif game:GetService("TenFootInterface") then
+        game:GetService("TenFootInterface"):SetClipboard(LINK_DISCORD)
+        clipboardSuccess = true
+    end
+    
+    local originalText = discordBtn.Text
+    if clipboardSuccess then
+        discordBtn.Text = "✓ LINK COPIADO!"
+    else
+        discordBtn.Text = "✗ ERRO (manual)"
+        warn("Link: " .. LINK_DISCORD)
+    end
+    discordBtn.BackgroundColor3 = Color3.fromRGB(70, 200, 100)
+    
+    task.wait(1.5)
+    discordBtn.Text = originalText
+    discordBtn.BackgroundColor3 = Color3.fromRGB(114, 137, 218)
+end)
+
+-- =====================================================
+--                 INICIALIZAÇÃO
+-- =====================================================
+screenGui.Parent = game:GetService("CoreGui") or game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Efeito hover nos botões
+local function applyHover(btn, corNormal, corHover)
+    btn.MouseEnter:Connect(function()
+        btn.BackgroundColor3 = corHover
+    end)
+    btn.MouseLeave:Connect(function()
+        btn.BackgroundColor3 = corNormal
+    end)
+end
+
+applyHover(lagToggle, lagToggle.BackgroundColor3, Color3.fromRGB(150, 60, 120))
+applyHover(noResetToggle, noResetToggle.BackgroundColor3, Color3.fromRGB(100, 100, 150))
+applyHover(discordBtn, discordBtn.BackgroundColor3, Color3.fromRGB(88, 101, 242))
+applyHover(minimizeBtn, minimizeBtn.BackgroundColor3, Color3.fromRGB(100, 100, 130))
+
+print("gumball scripts_lag carregado! Modo gráficos + reset local ativo.")
